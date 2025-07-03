@@ -28,24 +28,6 @@ Java library for converting and manipulating various font formats, normalizing i
 		</dependency>
     </dependencies>
 
-#### Optional jBrotli dependency for WOFF2 support. jBrotli is currently optional since it is not on Maven Central or JCenter yet.
-    <dependencies>
-        <dependency>
-            <groupId>org.meteogroup.jbrotli</groupId>
-            <artifactId>jbrotli</artifactId>
-            <version>0.5.0</version>
-            <optional>true</optional>
-        </dependency>
-    </dependencies>
-
-    <repositories>
-        <repository>
-            <id>bintray-nitram509-jbrotli</id>
-            <name>bintray</name>
-            <url>http://dl.bintray.com/nitram509/jbrotli</url>
-        </repository>
-    </repositories>
-
 ## Usage
 ##### Converting a font (in this case to OTF)
 ```java

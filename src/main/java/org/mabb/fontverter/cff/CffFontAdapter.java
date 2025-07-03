@@ -293,33 +293,28 @@ public class CffFontAdapter implements FVFont {
             String charString = font.toString().substring(font.toString().indexOf("charStrings="));
             String[] charStrings = charString.replace("charStrings=", "").replace("[[", "").replace("]", "").split("\\[");
 
-            // font.getCharset().get
-
             Type2CharStringParser parser = new Type2CharStringParser(font.getName());
 
-            //parser.parse()
-            Type2CharString charStr = null;
+            Type2CharString charStr = font.getType2CharString(mapOn.glyphId);
             byte[] bytes = null;
-
-            charStr = font.getType2CharString(mapOn.glyphId);
 
             if (charStr.getGID() < charStrings.length) {
                 bytes = charStrings[charStr.getGID()].getBytes();
             }
             if (bytes == null) {
-                bytes = charStrings[0].getBytes(); // .notdef
+                bytes = charStrings[0].getBytes();
             }
+
+            glyph.charStr = charStr;
 
 
             Class<?> c = null;
 
             try {
                 c = Class.forName("org.apache.fontbox.cff.CFFFont");
-
             } catch (ClassNotFoundException e) {
                 throw new RuntimeException(e);
             }
-
 
             byte[][] globalSubrIndex = new byte[getFont().getGlobalSubrIndex().size()][];
 
@@ -328,14 +323,6 @@ public class CffFontAdapter implements FVFont {
             }
 
             Field localSubrIndexField = FontVerterUtils.findPrivateField("localSubrIndex", c);
-
-            if (font instanceof CFFType1Font) {
-                glyph.charStr = charStr;
-            }
-            if (font instanceof CFFCIDFont) {
-                // glyph.charStr = charStr;
-                glyph.charStr = charStr;
-            }
 
             try {
 
