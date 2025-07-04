@@ -23,7 +23,10 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.fontbox.EncodedFont;
 import org.apache.fontbox.cff.*;
 import org.apache.fontbox.encoding.Encoding;
-import org.mabb.fontverter.*;
+import org.mabb.fontverter.FVFont;
+import org.mabb.fontverter.FontNotSupportedException;
+import org.mabb.fontverter.FontProperties;
+import org.mabb.fontverter.FontVerter;
 import org.mabb.fontverter.converter.CFFToOpenTypeConverter;
 import org.mabb.fontverter.converter.CombinedFontConverter;
 import org.mabb.fontverter.converter.FontConverter;
@@ -32,7 +35,6 @@ import org.mabb.fontverter.opentype.GlyphMapReader;
 import org.mabb.fontverter.validator.RuleValidator;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.*;
 
 public class CffFontAdapter implements FVFont {
@@ -184,7 +186,8 @@ public class CffFontAdapter implements FVFont {
         // key: sidorcid, value: name
         for (Map.Entry<Integer, String> entry : codeToNameMap.entrySet()) {
             if (!font.getCharset().isCIDFont()) {
-                int gid = font.getCharset().getGIDForSID(entry.getKey());
+                int sid = font.getCharset().getSID(entry.getValue());
+                int gid = font.getCharset().getGIDForSID(sid);
                 gidToName.put(gid, entry.getValue());
             } else {
 
@@ -299,22 +302,14 @@ public class CffFontAdapter implements FVFont {
             byte[] bytes = null;
 
             if (charStr.getGID() < charStrings.length) {
-                bytes = charStrings[charStr.getGID()].getBytes();
+                bytes = font.getCharStringBytes().get(charStr.getGID());
             }
             if (bytes == null) {
-                bytes = charStrings[0].getBytes();
+                bytes = font.getCharStringBytes().get(0);
             }
 
             glyph.charStr = charStr;
 
-
-            Class<?> c = null;
-
-            try {
-                c = Class.forName("org.apache.fontbox.cff.CFFFont");
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            }
 
             byte[][] globalSubrIndex = new byte[getFont().getGlobalSubrIndex().size()][];
 
@@ -322,19 +317,12 @@ public class CffFontAdapter implements FVFont {
                 globalSubrIndex[i] = getFont().getGlobalSubrIndex().get(i);
             }
 
-            Field localSubrIndexField = FontVerterUtils.findPrivateField("localSubrIndex", c);
 
-            try {
+            List<Object> result = parser.parse(bytes, globalSubrIndex,
+                    null,
+                    mapOn.name);
+            glyph.readType2Sequence(result);
 
-                List<Object> result = parser.parse(bytes, globalSubrIndex,
-                        localSubrIndexField == null ? new byte[][]{} :
-                                (byte[][]) localSubrIndexField.get(font),
-                        font.getName());
-                glyph.readType2Sequence(result);
-
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
             glyph.map = mapOn;
             glyphs.add(glyph);
 
@@ -439,7 +427,7 @@ public class CffFontAdapter implements FVFont {
         }
 
         private void parseHint(Command command) {
-            if (command.name.startsWith("hstem")) {
+            if (command.name.toLowerCase().startsWith("hstem")) {
                 leftSideBearing = command.values.get(0);
             }
         }
