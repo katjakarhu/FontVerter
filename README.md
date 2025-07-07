@@ -1,5 +1,6 @@
 # FontVerter
-[![Java CI with Maven](https://github.com/katjakarhu/FontVerter/actions/workflows/maven.yml/badge.svg)](https://github.com/katjakarhu/FontVerter/actions/workflows/maven.yml)
+[![Java CI with Maven](https://github.com/katjakarhu/FontVerter/actions/workflows/maven.yml/badge.svg?branch=master)](https://github.com/katjakarhu/FontVerter/actions/workflows/maven.yml)
+
 
 Java library for converting and manipulating various font formats, normalizing invalid fonts and extracting fonts from PDFs.
 
